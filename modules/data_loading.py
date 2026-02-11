@@ -7,49 +7,59 @@ import os
 import streamlit as st
 
 @st.cache_data
-def load_data(uploaded_files):
+def load_data(base_oae_file, snv_file):
     """Load and process the input files."""
-    # Verificar se os arquivos necessários foram carregados
-    required_files = ['base_oae_colep', 'SNV_202501A']
-    for file in required_files:
-        if file not in uploaded_files:
-            st.error(f"Arquivo obrigatório não encontrado: {file}")
-            st.stop()
-    
     try:
-        # 1. Carregando os dados dos arquivos enviados
-        df_oae = pd.read_excel(uploaded_files['base_oae_colep'])
+        # 1. Carregar dados OAE do Excel
+        df_oae = pd.read_excel(base_oae_file)
         
-        # Processar o shapefile SNV
-        with zipfile.ZipFile(uploaded_files['SNV_202501A'], 'r') as z:
-            # Encontrar o arquivo .shp dentro do ZIP
-            shp_file = [f for f in z.namelist() if f.endswith('.shp')][0]
-            # Extrair todos os arquivos para um diretório temporário
+        # 2. Processar shapefile SNV
+        with zipfile.ZipFile(snv_file, 'r') as z:
+            # Encontrar arquivo .shp
+            shp_files = [f for f in z.namelist() if f.endswith('.shp')]
+            if not shp_files:
+                st.error("Nenhum arquivo .shp encontrado no ZIP")
+                return None, None
+            
+            # Extrair para diretório temporário
             temp_dir = tempfile.mkdtemp()
             z.extractall(temp_dir)
-            # Carregar o shapefile usando o caminho completo
-            df_snv = gpd.read_file(os.path.join(temp_dir, shp_file))
+            
+            # Carregar shapefile
+            df_snv = gpd.read_file(os.path.join(temp_dir, shp_files[0]))
         
-        # Converter para GeoDataFrame se necessário
-        if not isinstance(df_oae, gpd.GeoDataFrame):
-            df_oae['geometry'] = df_oae.apply(lambda row: Point(row['longitude'], row['latitude']), axis=1)
-            df_oae = gpd.GeoDataFrame(df_oae, geometry='geometry', crs=df_snv.crs)
+        # 3. Processar dados OAE
+        # Verificar se colunas de coordenadas existem
+        if 'latitude' in df_oae.columns and 'longitude' in df_oae.columns:
+            # Criar geometria para OAE
+            geometry = [Point(xy) for xy in zip(df_oae['longitude'], df_oae['latitude'])]
+            df_oae = gpd.GeoDataFrame(df_oae, geometry=geometry, crs="EPSG:4326")
+        else:
+            st.error("Colunas 'latitude' e/ou 'longitude' não encontradas no arquivo OAE")
+            return None, None
         
-        # Criar coluna streetview_link
+        # 4. Garantir mesmo CRS (WGS84 - EPSG:4326)
+        df_snv = df_snv.to_crs(epsg=4326)
+        df_oae = df_oae.to_crs(epsg=4326)
+        
+        # 5. Criar link do Street View
         df_oae['streetview_link'] = df_oae.apply(
-            lambda row: f"https://www.google.com/maps?q=&layer=c&cbll={row['latitude']},{row['longitude']}", 
+            lambda row: f"https://www.google.com/maps?q=&layer=c&cbll={row['latitude']},{row['longitude']}&cbp=12,90,0,0,5", 
             axis=1
         )
         
-        # Converter para o mesmo CRS
-        df_snv = df_snv.to_crs(epsg=5880)
-        df_oae = df_oae.to_crs(epsg=5880)
-
-        df_snv['geometry'] = df_snv['geometry'].simplify(tolerance=10, preserve_topology=True)
-        df_oae['cod_sgo'] = df_oae['cod_sgo'].astype(str).str.zfill(6)
-
+        # 6. Padronizar formatos
+        if 'cod_sgo' in df_oae.columns:
+            df_oae['cod_sgo'] = df_oae['cod_sgo'].astype(str).str.zfill(6)
+        
+        # 7. Simplificar geometrias do SNV para melhor performance
+        df_snv['geometry'] = df_snv['geometry'].simplify(tolerance=0.001, preserve_topology=True)
+        
+        st.success(f"Dados carregados: {len(df_snv)} rodovias, {len(df_oae)} obras")
         return df_snv, df_oae
     
     except Exception as e:
         st.error(f"Erro ao processar os arquivos: {str(e)}")
-        st.stop()
+        import traceback
+        st.error(traceback.format_exc())
+        return None, None
