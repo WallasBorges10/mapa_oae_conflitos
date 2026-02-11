@@ -1,10 +1,3 @@
-import streamlit as st
-from streamlit_folium import folium_static
-from modules.data_loading import load_data
-from modules.ui import setup_ui, display_filters, display_results
-from modules.mapping import create_map
-from modules.search import search_oae
-
 def main():
 
     setup_ui()
@@ -12,7 +5,22 @@ def main():
     uploaded_files = display_filters()
     
     if len(uploaded_files) == 2:
-        df_snv, df_oae = load_data(uploaded_files)     
+        df_snv, df_oae = load_data(uploaded_files)
+
+        # 🔹 PADRONIZAÇÃO GLOBAL DE COLUNAS (INSERIR AQUI)
+        df_snv.columns = (
+            df_snv.columns
+            .str.strip()
+            .str.lower()
+            .str.replace(" ", "_")
+        )
+
+        df_oae.columns = (
+            df_oae.columns
+            .str.strip()
+            .str.lower()
+            .str.replace(" ", "_")
+        )
 
         filtered_snv, filtered_oae = display_results(df_snv, df_oae)
 
@@ -21,6 +29,3 @@ def main():
             folium_static(m, width=1400, height=800)
         else:
             st.warning("Nenhum dado encontrado com os filtros selecionados.")
-
-if __name__ == "__main__":
-    main()
