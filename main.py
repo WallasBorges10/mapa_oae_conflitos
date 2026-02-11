@@ -1,3 +1,12 @@
+onde corrijo em:
+
+import streamlit as st
+from streamlit_folium import folium_static
+from modules.data_loading import load_data
+from modules.ui import setup_ui, display_filters, display_results
+from modules.mapping import create_map
+from modules.search import search_oae
+
 def main():
 
     setup_ui()
@@ -29,3 +38,4 @@ def main():
             folium_static(m, width=1400, height=800)
         else:
             st.warning("Nenhum dado encontrado com os filtros selecionados.")
+
