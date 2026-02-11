@@ -69,10 +69,23 @@ def display_results(df_snv, df_oae):
         )
         
         # 4. Filtro de Conflitos (depende de UF(s), Tipo de Obra e Rodovia selecionados)
-        df_filtered_br = df_filtered_tipo if selected_br == 'Todos' else df_filtered_tipo[df_filtered_tipo['br'] == selected_br]
+        df_filtered_br = (
+            df_filtered_tipo
+            if selected_br == 'Todos'
+            else df_filtered_tipo[df_filtered_tipo['br'] == selected_br]
+        )
+        
+        # 🔹 inicialização segura
+        selected_conflitos = []
         
         if 'conflitos' in df_filtered_br.columns:
-            conflitos_options = sorted(df_filtered_br['conflitos'].dropna().unique().tolist())
+            conflitos_options = sorted(
+                df_filtered_br['conflitos']
+                .dropna()
+                .unique()
+                .tolist()
+            )
+        
             selected_conflitos = st.multiselect(
                 "Conflitos",
                 conflitos_options,
@@ -81,15 +94,28 @@ def display_results(df_snv, df_oae):
         else:
             st.warning("Coluna 'conflitos' não encontrada no dataframe")
         
-        # 5. Filtro de Código (depende de UF(s), Tipo de Obra, Rodovia e Conflitos selecionados)
-        df_filtered_conflitos = df_filtered_br if not selected_conflitos else df_filtered_br[df_filtered_br['conflitos'].isin(selected_conflitos)]
+        # 5. Aplicação do filtro
+        if selected_conflitos:
+            df_filtered_conflitos = df_filtered_br[
+                df_filtered_br['conflitos'].isin(selected_conflitos)
+            ]
+        else:
+            df_filtered_conflitos = df_filtered_br
         
-        codigo_options = sorted(df_filtered_conflitos['cod_sgo'].dropna().astype(str).unique().tolist())
+        codigo_options = sorted(
+            df_filtered_conflitos['cod_sgo']
+            .dropna()
+            .astype(str)
+            .unique()
+            .tolist()
+        )
+        
         selected_codigos = st.multiselect(
             "Código",
             codigo_options,
             key="cod_sgo"
         )
+
 
     # Aplicar filtros finais aos dataframes
     filtered_oae = df_oae.copy()
@@ -134,4 +160,5 @@ def display_results(df_snv, df_oae):
     col1.write(f"SNV visíveis: {len(filtered_snv)}")
     col2.write(f"Obras de Arte Especiais visíveis: {len(filtered_oae)}")
     
+
     return filtered_snv, filtered_oae
