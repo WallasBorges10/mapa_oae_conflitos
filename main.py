@@ -15,12 +15,6 @@ def main():
         df_snv, df_oae = load_data(uploaded_files)     
 
         filtered_snv, filtered_oae = display_results(df_snv, df_oae)
-        filtered_oae.columns = (
-                filtered_oae.columns
-                    .str.strip()
-                    .str.lower()
-                    .str.replace(' ', '_')
-            )
 
 
         if not filtered_snv.empty or not filtered_oae.empty:
@@ -31,4 +25,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
