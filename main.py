@@ -12,22 +12,7 @@ def main():
     uploaded_files = display_filters()
     
     if len(uploaded_files) == 2:
-        df_snv, df_oae = load_data(uploaded_files)
-
-        # 🔹 PADRONIZAÇÃO GLOBAL DE COLUNAS (INSERIR AQUI)
-        df_snv.columns = (
-            df_snv.columns
-            .str.strip()
-            .str.lower()
-            .str.replace(" ", "_")
-        )
-
-        df_oae.columns = (
-            df_oae.columns
-            .str.strip()
-            .str.lower()
-            .str.replace(" ", "_")
-        )
+        df_snv, df_oae = load_data(uploaded_files)     
 
         filtered_snv, filtered_oae = display_results(df_snv, df_oae)
 
@@ -37,4 +22,5 @@ def main():
         else:
             st.warning("Nenhum dado encontrado com os filtros selecionados.")
 
-
+if __name__ == "__main__":
+    main()
