@@ -49,7 +49,6 @@ def create_map(filtered_snv, filtered_oae, selected_point=None):
             <b>UF:</b> {row['uf']}<br>
             <b>Código SGO:</b> {row['cod_sgo']}<br>
             <b>Descrição:</b> {row['descr_obra']}<br>
-            <b>Tipo de Conflito:</b> {row['tipo_conflito']}<br>
             <b>Tipo Obra:</b> {row['tipo_obra']}<br>
             <b>Rodovia:</b> {row['br']}<br>
             <b>Nota SGO:</b> {row['nota_sgo']}<br>        
@@ -86,3 +85,4 @@ def create_map(filtered_snv, filtered_oae, selected_point=None):
     folium.LayerControl().add_to(m)
 
     return m
+
