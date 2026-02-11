@@ -1,5 +1,3 @@
-onde corrijo em:
-
 import streamlit as st
 from streamlit_folium import folium_static
 from modules.data_loading import load_data
@@ -38,4 +36,5 @@ def main():
             folium_static(m, width=1400, height=800)
         else:
             st.warning("Nenhum dado encontrado com os filtros selecionados.")
+
 
