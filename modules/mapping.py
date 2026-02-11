@@ -18,7 +18,7 @@ def create_map(filtered_snv, filtered_oae, selected_point=None):
     
     # Definir listas para tooltips
     lista_snv = ['vl_br', 'sg_uf', 'vl_codigo', 'ds_coinc', 'ds_tipo_ad', 'ds_jurisdi','ds_superfi','ul']
-    lista_oae = ['cod_sgo', 'descr_obra', 'tipo_obra','nota_sgo', 'origem_cadastro', 'uf', 'vl_codigo', 'ds_tipo_ad','ds_jurisdi', 'ul']
+    lista_oae = ['cod_sgo', 'descr_obra', 'tipo_obra','nota_sgo', 'origem_cadastro', 'uf', 'vl_codigo', 'ds_tipo_ad','ds_jurisdi', 'ul','tipo_conflito']
 
     # Mostrar progresso
     with st.spinner('Preparando mapa...'):
@@ -84,4 +84,5 @@ def create_map(filtered_snv, filtered_oae, selected_point=None):
     ).add_to(m)
     
     folium.LayerControl().add_to(m)
+
     return m
